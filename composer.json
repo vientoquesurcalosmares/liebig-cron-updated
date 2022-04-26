@@ -1,5 +1,5 @@
 {
-    "name": "liebig/cron-updated",
+    "name": "vientoquesurcalosmares/liebig-cron-updated",
     "description": "Job scheduling for Laravel",
     "keywords": ["laravel", "cron", "cronjob", "cronmanager"],
     "homepage": "http://liebig.github.io/cron",
