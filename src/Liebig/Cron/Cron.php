@@ -180,7 +180,7 @@ class Cron {
 
                         if (self::isDatabaseLogging()) {
                             // Create a new cronmanager database object with runtime -1
-                            $cronmanager = new\Liebig\Cron\Models\Manager();
+                            $cronmanager = new \Liebig\Cron\Models\Manager();
                             $cronmanager->rundate = $runDate;
                             $cronmanager->runtime = -1;
                             $cronmanager->save();
@@ -289,7 +289,7 @@ class Cron {
             if (self::isDatabaseLogging()) {
 
                 // Create a new cronmanager database object for this run and save it
-                $cronmanager = new\Liebig\Cron\Models\Manager();
+                $cronmanager = new \Liebig\Cron\Models\Manager();
                 $cronmanager->rundate = $runDate;
                 $cronmanager->runtime = $afterAll - $beforeAll;
                 $cronmanager->save();
