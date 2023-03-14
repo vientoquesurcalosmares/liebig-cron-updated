@@ -60,7 +60,7 @@ class RunCommand extends Command {
         $laravel = app();
         $version = $laravel::VERSION;
 
-        if ($version < '5.2') {
+        if ( (float)$version < '5.2' ) {
           // Create table for old Laravel versions.
           $table = $this->getHelperSet()->get('table');
           $table->setHeaders(array('Run date', 'In time', 'Run time', 'Errors', 'Jobs'));
