@@ -54,7 +54,7 @@ class ListCommand extends Command {
         $laravel = app();
         $version = $laravel::VERSION;
 
-        if ($version < '5.2') {
+        if ( (float)$version < '5.2' ) {
             // Create the table helper with headers.
             $table = $this->getHelperSet()->get('table');
             $table->setHeaders(array('Jobname', 'Expression', 'Activated'));
