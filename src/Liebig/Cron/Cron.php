@@ -14,6 +14,8 @@
 
 namespace Liebig\Cron;
 
+use Illuminate\Support\Str;
+
 /**
  * Cron
  *
@@ -49,7 +51,15 @@ class Cron {
         if (function_exists('app')) {
             $laravel = app();
             // Get only the major version number
-            $version = substr($laravel::VERSION, 0, 1);
+            //$version = substr($laravel::VERSION, 0, 1);
+            //$version = $laravel::VERSION;
+            $version = app()->version();
+
+            if( Str::contains($version, '.') ){
+                $version = Str::of($version)
+                    ->split('/\.+/')
+                    ->first();
+            }
 
             if (is_int(intval($version))) {
                 self::$laravelVersion = intval($version);
