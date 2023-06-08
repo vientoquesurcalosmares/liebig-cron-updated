@@ -38,22 +38,26 @@ class Cron {
      * @var \Monolog\Logger Logger object Monolog logger object if logging is wished or null if nothing should be logged to this logger
      */
     private static $logger;
-    
+
     /**
      * @static
      * @var int Laravel version
      */
     private static $laravelVersion;
 
-    function __construct() {
+    public function __construct() {
+        self::getVersionLaravel();
+    }
 
+    public static function getVersionLaravel()
+    {
         // Detect Laravel Version and save it to $laravelVersion variable
         if (function_exists('app')) {
             $laravel = app();
             // Get only the major version number
             //$version = substr($laravel::VERSION, 0, 1);
             //$version = $laravel::VERSION;
-            $version = app()->version();
+            $version = $laravel->version();
 
             if( Str::contains($version, '.') ){
                 $version = Str::of($version)
@@ -131,7 +135,7 @@ class Cron {
 
     /**
      * Remove a cron job by name
-     * 
+     *
      * @static
      * @param string $name The name of the cron job which should be removed from execution
      * @return bool Return true if a cron job with the given name was found and was successfully removed or return false if no job with the given name was found
@@ -151,13 +155,12 @@ class Cron {
      * Run the cron jobs
      * This method checks and runs all the defined cron jobs at the right time
      * This method (route) should be called automatically by a server or service
-     * 
+     *
      * @static
      * @param bool $checkRundateOnce optional When we check if a cronjob is due do we take into account the time when the run function was called ($checkRundateOnce = true) or do we take into account the time when each individual cronjob is executed ($checkRundateOnce = false) - default value is true
      * @return array Return an array with the rundate, runtime, errors and a result cron job array (with name, function return value, runtime in seconds)
      */
     public static function run($checkRundateOnce = true) {
-
         // If a new lock file is created, $overlappingLockFile will be equals the file path
         $overlappingLockFile = "";
 
@@ -359,7 +362,7 @@ class Cron {
 
             $returnArray = array('rundate' => $runDate->getTimestamp(), 'inTime' => $inTime, 'runtime' => ($afterAll - $beforeAll), 'errors' => count($errorJobs), 'crons' => $allJobs);
 
-            // If Cron was called before, add the latest call to the $returnArray 
+            // If Cron was called before, add the latest call to the $returnArray
             if (isset($lastManager[0]) && !empty($lastManager[0])) {
                 $returnArray['lastRun'] = array('rundate' => $lastManager[0]->rundate, 'runtime' => $lastManager[0]->runtime);
             } else {
@@ -562,13 +565,13 @@ class Cron {
 
     /**
      * Is Laravels build in logging enabled or disabled
-     * 
+     *
      * @static
      * @return bool Return boolean which indicates if Laravels logging is enabled or disabled
      * @throws \UnexpectedValueException if the cron::laravelLogging config value is not a boolean or NULL
      */
     public static function isLaravelLogging() {
-        
+
         $laravelLogging = self::getConfig('laravelLogging');
 
         if (is_null($laravelLogging) || is_bool($laravelLogging)) {
@@ -595,14 +598,14 @@ class Cron {
 
     /**
      * Is logging to database enabled or disabled
-     * 
+     *
      * @static
      * @return boolean Return boolean which indicates if database logging is enabled or disabled
      * @throws \UnexpectedValueException if the cron::databaseLogging config value is not a boolean
      */
     public static function isDatabaseLogging() {
         $databaseLogging = self::getConfig('databaseLogging');
-        
+
         if (is_null($databaseLogging)) {
             // If the value is not set, return false
             return false;
@@ -614,7 +617,7 @@ class Cron {
     }
 
     /**
-     * Enable or disable logging error jobs only to database 
+     * Enable or disable logging error jobs only to database
      * NOTE: This works only if database logging is enabled
      *
      * @static
@@ -631,14 +634,14 @@ class Cron {
 
     /**
      * Check if log error jobs to database only is enabled or disabled
-     * 
+     *
      * @return bool Return boolean which indicates if logging only error jobs to database is enabled or disabled
      * @throws \UnexpectedValueException if the cron::logOnlyErrorJobsToDatabase config value is not a boolean
      */
     public static function isLogOnlyErrorJobsToDatabase() {
-        
+
         $logOnlyErrorJobsToDatabase = self::getConfig('logOnlyErrorJobsToDatabase');
-        
+
         if (is_null($logOnlyErrorJobsToDatabase)) {
             // If the value is not set, return false
             return false;
@@ -677,14 +680,14 @@ class Cron {
 
     /**
      * Get the current run interval value
-     * 
+     *
      * @return int|null Return the current interval value in minutes or NULL if there is no value set
      * @throws \UnexpectedValueException if the cron::runInterval config value is not an integer or NULL
      */
     public static function getRunInterval() {
-        
+
         $interval = self::getConfig('runInterval');
-        
+
         if (is_null($interval) || is_int($interval)) {
             return $interval;
         } else {
@@ -693,7 +696,7 @@ class Cron {
     }
 
     /**
-     * Set the delete time of old database entries in hours 
+     * Set the delete time of old database entries in hours
      *
      * @static
      * @param  int $hours optional Set the delete time in hours, if this value is 0 the delete old database entries function will be disabled - default value is 0
@@ -709,14 +712,14 @@ class Cron {
 
     /**
      * Get the current delete time value in hours for old database entries
-     * 
+     *
      * @return int|null Return the current delete time value in hours or NULL if no value was set
      * @throws \UnexpectedValueException if the cron::deleteDatabaseEntriesAfter config value is not an integer or NULL
      */
     public static function getDeleteDatabaseEntriesAfter() {
-        
+
         $deleteDatabaseEntriesAfter = self::getConfig('deleteDatabaseEntriesAfter');
-        
+
         if (is_null($deleteDatabaseEntriesAfter) || is_int($deleteDatabaseEntriesAfter)) {
             return $deleteDatabaseEntriesAfter;
         } else {
@@ -844,9 +847,9 @@ class Cron {
      * @return bool Return boolean if prevent job overlapping is enabled (true) or disabled (false)
      */
     public static function isPreventOverlapping() {
-        
+
         $preventOverlapping = self::getConfig('preventOverlapping');
-        
+
         if (is_bool($preventOverlapping)) {
             return $preventOverlapping;
         } else {
@@ -880,9 +883,9 @@ class Cron {
      * @return bool Return boolean if the Cron run in time check is enabled (true) or disabled (false)
      */
     public static function isInTimeCheck() {
-        
+
         $inTimeCheck = self::getConfig('inTimeCheck');
-        
+
         if (is_bool($inTimeCheck)) {
             return $inTimeCheck;
         } else {
@@ -900,7 +903,7 @@ class Cron {
     public static function getCronJobs() {
         return self::$cronJobs;
     }
-    
+
     /**
      * Get Config value
      *
@@ -909,6 +912,8 @@ class Cron {
      * @param  mixed $defaultValue If no value for the given key is available, return this default value
      */
     private static function getConfig($key, $defaultValue = NULL) {
+        self::getVersionLaravel();
+
         $configValue = $defaultValue;
         if (self::$laravelVersion >= 5) {
            $configValue = \Config::get('liebigCron.' . $key);
@@ -926,6 +931,8 @@ class Cron {
      * @param  mixed $value Value which should be set
      */
     private static function setConfig($key, $value) {
+        self::getVersionLaravel();
+
         if (self::$laravelVersion >= 5) {
             \Config::set('liebigCron.' . $key, $value);
         } else {
