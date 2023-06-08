@@ -49,6 +49,10 @@ class Cron {
         self::getVersionLaravel();
     }
 
+    /**
+     * Get laravel version
+     * @return void
+     */
     public static function getVersionLaravel()
     {
         // Detect Laravel Version and save it to $laravelVersion variable
@@ -300,47 +304,53 @@ class Cron {
 
             // If database logging is enabled, save manager und jobs to db
             if (self::isDatabaseLogging()) {
-
-                // Create a new cronmanager database object for this run and save it
-                $cronmanager = new \Liebig\Cron\Models\Manager();
-                $cronmanager->rundate = $runDate;
-                $cronmanager->runtime = $afterAll - $beforeAll;
-                $cronmanager->save();
-
-                // If the Cron run in time check is enabled, verify the time between the current and the last Cron run ($timeBetween) and compare it with the run interval
                 if (self::isInTimeCheck()) {
                     $inTime = false;
-                    // Check if the run between this and the last run is in time (30 seconds tolerance) and log this event
-                    if ($timeBetween === -1) {
-                        self::log('notice', 'Cron run with manager id ' . $cronmanager->id . ' has no previous managers.');
-                        $inTime = -1;
-                    } elseif (($runInterval * 60) - $timeBetween < -30) {
-                        self::log('error', 'Cron run with manager id ' . $cronmanager->id . ' is with ' . $timeBetween . ' seconds between last run too late.');
-                        $inTime = false;
-                    } elseif (($runInterval * 60) - $timeBetween > 30) {
-                        self::log('error', 'Cron run with manager id ' . $cronmanager->id . ' is with ' . $timeBetween . ' seconds between last run too fast.');
-                        $inTime = false;
-                    } else {
-                        self::log('info', 'Cron run with manager id ' . $cronmanager->id . ' is with ' . $timeBetween . ' seconds between last run in time.');
-                        $inTime = true;
-                    }
-                } else {
+                }
+                else {
                     $inTime = -1;
                 }
 
-                if (self::isLogOnlyErrorJobsToDatabase()) {
-                    // Save error jobs only to database
-                    self::saveJobsFromArrayToDatabase($errorJobs, $cronmanager->id);
-                } else {
-                    // Save all jobs to database
-                    self::saveJobsFromArrayToDatabase($allJobs, $cronmanager->id);
-                }
+                if( count($errorJobs)>0 or count($allJobs)>0 )
+                {
+                    // Create a new cronmanager database object for this run and save it
+                    $cronmanager = new \Liebig\Cron\Models\Manager();
+                    $cronmanager->rundate = $runDate;
+                    $cronmanager->runtime = $afterAll - $beforeAll;
+                    $cronmanager->save();
 
-                // Log the result of the cron run
-                if (empty($errorJobs)) {
-                    self::log('info', 'The cron run with the manager id ' . $cronmanager->id . ' was finished without errors.');
-                } else {
-                    self::log('error', 'The cron run with the manager id ' . $cronmanager->id . ' was finished with ' . count($errorJobs) . ' errors.');
+                    // If the Cron run in time check is enabled, verify the time between the current and the last Cron run ($timeBetween) and compare it with the run interval
+                    if (self::isInTimeCheck()) {
+                        // Check if the run between this and the last run is in time (30 seconds tolerance) and log this event
+                        if ($timeBetween === -1) {
+                            self::log('notice', 'Cron run with manager id ' . $cronmanager->id . ' has no previous managers.');
+                            $inTime = -1;
+                        } elseif (($runInterval * 60) - $timeBetween < -30) {
+                            self::log('error', 'Cron run with manager id ' . $cronmanager->id . ' is with ' . $timeBetween . ' seconds between last run too late.');
+                            $inTime = false;
+                        } elseif (($runInterval * 60) - $timeBetween > 30) {
+                            self::log('error', 'Cron run with manager id ' . $cronmanager->id . ' is with ' . $timeBetween . ' seconds between last run too fast.');
+                            $inTime = false;
+                        } else {
+                            self::log('info', 'Cron run with manager id ' . $cronmanager->id . ' is with ' . $timeBetween . ' seconds between last run in time.');
+                            $inTime = true;
+                        }
+                    }
+
+                    if (self::isLogOnlyErrorJobsToDatabase()) {
+                        // Save error jobs only to database
+                        self::saveJobsFromArrayToDatabase($errorJobs, $cronmanager->id);
+                    } else {
+                        // Save all jobs to database
+                        self::saveJobsFromArrayToDatabase($allJobs, $cronmanager->id);
+                    }
+
+                    // Log the result of the cron run
+                    if (empty($errorJobs)) {
+                        self::log('info', 'The cron run with the manager id ' . $cronmanager->id . ' was finished without errors.');
+                    } else {
+                        self::log('error', 'The cron run with the manager id ' . $cronmanager->id . ' was finished with ' . count($errorJobs) . ' errors.');
+                    }
                 }
 
                 // Check for old database entires and delete them
