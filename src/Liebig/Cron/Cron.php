@@ -347,7 +347,9 @@ class Cron {
 
                     // Log the result of the cron run
                     if (empty($errorJobs)) {
-                        self::log('info', 'The cron run with the manager id ' . $cronmanager->id . ' was finished without errors.');
+                        if( !self::isLogOnlyErrorJobsToLaravelLogging() ){
+                            self::log('info', 'The cron run with the manager id ' . $cronmanager->id . ' was finished without errors.');
+                        }
                     } else {
                         self::log('error', 'The cron run with the manager id ' . $cronmanager->id . ' was finished with ' . count($errorJobs) . ' errors.');
                     }
@@ -359,7 +361,9 @@ class Cron {
                 // If database logging is disabled
                 // Log the status of the cron job run without the cronmanager id
                 if (empty($errorJobs)) {
-                    self::log('info', 'Cron run was finished without errors.');
+                    if( !self::isLogOnlyErrorJobsToLaravelLogging() ){
+                        self::log('info', 'Cron run was finished without errors.');
+                    }
                 } else {
                     self::log('error', 'Cron run was finished with ' . count($errorJobs) . ' errors.');
                 }
@@ -659,6 +663,41 @@ class Cron {
             return $logOnlyErrorJobsToDatabase;
         } else {
             throw new \UnexpectedValueException('Config option "logOnlyErrorJobsToDatabase" is not a boolean or not equals NULL.');
+        }
+    }
+
+    /**
+     * Enable or disable logging error jobs only to database
+     * NOTE: This works only if Laravel logging is enabled
+     *
+     * @static
+     * @param  bool $bool Set to enable or disable logging error jobs only
+     * @throws \InvalidArgumentException if the $bool function paramter is not a boolean
+     */
+    public static function setLogOnlyErrorJobsToLaravelLogging($bool) {
+        if (is_bool($bool)) {
+            self::setConfig('logOnlyErrorJobsToLaravelLogging', $bool);
+        } else {
+            throw new \InvalidArgumentException('Function paramter $bool with value "' . $bool . '" is not a boolean.');
+        }
+    }
+
+    /**
+     * Check if log error jobs to Laravel logging file only is enabled or disabled
+     *
+     * @return bool Return boolean which indicates if logging only error jobs to Laravel logging file is enabled or disabled
+     * @throws \UnexpectedValueException if the cron::logOnlyErrorJobsToLaravelLogging config value is not a boolean
+     */
+    public static function isLogOnlyErrorJobsToLaravelLogging() {
+        $logOnlyErrorJobsToLaravelLogging = self::getConfig('logOnlyErrorJobsToLaravelLogging');
+
+        if (is_null($logOnlyErrorJobsToLaravelLogging)) {
+            // If the value is not set, return true
+            return true;
+        } else if (is_bool($logOnlyErrorJobsToLaravelLogging)) {
+            return $logOnlyErrorJobsToLaravelLogging;
+        } else {
+            throw new \UnexpectedValueException('Config option "logOnlyErrorJobsToLaravelLogging" is not a boolean or not equals NULL.');
         }
     }
 
